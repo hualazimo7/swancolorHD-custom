@@ -16,6 +16,9 @@ const byte PIN_PS2_CMD = 14;
 const byte PIN_PS2_DAT = 15;
 const byte PIN_PS2_CLK = 13;
 
+const byte PIN_BUTTONPRESS = A4;
+const byte PIN_HAVECONTROLLER = A5;
+
 const char buttonSelectName[] PROGMEM = "Select";
 const char buttonL3Name[] PROGMEM = "L3";
 const char buttonR3Name[] PROGMEM = "R3";
@@ -243,6 +246,9 @@ void readController() {
 
   if ( psMode ) {
     static byte slx, sly, srx, sry;
+
+    fastDigitalWrite (PIN_HAVECONTROLLER, haveController);
+    
     if (!haveController) {
       if (psx.begin ()) {
         Serial.println (F("Controller found!"));
@@ -250,24 +256,29 @@ void readController() {
         if (!psx.enterConfigMode ()) {
           Serial.println (F("Cannot enter config mode"));
         } else {
-          if (!psx.enableAnalogSticks ()) {
-            Serial.println (F("Cannot enable analog sticks"));
+          if (!psx.enableAnalogSticks (false)) {
+            Serial.println (F("Cannot disable analog sticks"));
           }
-          if (!psx.enableAnalogButtons ()) {
-            Serial.println (F("Cannot enable analog buttons"));
+          if (!psx.enableAnalogButtons (false)) {
+            Serial.println (F("Cannot disable analog buttons"));
+          }
+          if (!psx.enableRumble (false)) {
+            Serial.println (F("Cannot disable rumble"));
           }
           if (!psx.exitConfigMode ()) {
             Serial.println (F("Cannot exit config mode"));
-          }        
+          }
         }
+
         haveController = true;
       }
     } else {
-      psx.begin ();
       if (!psx.read ()) {
         Serial.println (F("Controller lost :("));
         haveController = false;
       } else {
+        fastDigitalWrite (PIN_BUTTONPRESS, !!psx.getButtonWord ());
+        
         // assign ps controller signal
         snesSELECT = psx.buttonPressed(PSB_SELECT);
         snesSTART = psx.buttonPressed(PSB_START);
@@ -282,8 +293,8 @@ void readController() {
         snesX = psx.buttonPressed(PSB_TRIANGLE);
         snesA = psx.buttonPressed(PSB_CIRCLE);
         snesB = psx.buttonPressed(PSB_CROSS);
-        snesY = psx.buttonPressed(PSB_SQUARE); 
-
+        snesY = psx.buttonPressed(PSB_SQUARE);
+        
         dumpButtons (psx.getButtonWord (), &snesUP, &snesDOWN, &intBemaniUpDownPrev, bemaniMode);
       }
     }
@@ -559,8 +570,10 @@ void updateWonderSignals() {
   // Write them.
   PORTD = dat;
 
+  uint8_t d13 = PORTB;
+  d13 = d13 & 0b11100000;
   // The next ones.
-  dat = ( conY3 ) | ( conY4 << 1 ) | ( conA << 2 ) | ( conB << 3 ) | 
+  dat = d13 | ( conY3 ) | ( conY4 << 1 ) | ( conA << 2 ) | ( conB << 3 ) | 
     ( conStart << 4 );
   PORTB = dat; 
 
@@ -577,6 +590,11 @@ void doComm() {
 }
 
 void setup() {
+  fastPinMode (PIN_BUTTONPRESS, OUTPUT);
+  fastPinMode (PIN_HAVECONTROLLER, OUTPUT);
+  
+  delay (300);
+  
   // DEBUG.
   Serial.begin(115200);
   Serial.println( "Startup" );
@@ -627,7 +645,7 @@ void modeCheck() {
   digitalWrite( SNESLATCH, 0 );
   pinMode( SNESCLK, OUTPUT );
   digitalWrite( SNESCLK, 1 );
-  pinMode( SNESSERIAL, INPUT_PULLUP );    
+  pinMode( SNESSERIAL, INPUT_PULLUP );
 
   // Set the latch to high for 12 us.
   digitalWrite( SNESLATCH, 1 );
