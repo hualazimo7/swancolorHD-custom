@@ -1,0 +1,8 @@
+Comment,Designator,Footprint,JLCPCB Part #ÅioptionalÅj
+"FFC connector with 24 pins, 0.5mm pitch, bottom contacts",FPC1,,C2856805
+TPS62221DDCT,U3,,C2073237
+Micro USB connector,USB1,,C482361
+4.7 uF,C1,,C29823
+10 uF,C2,,C13585
+10 uH,L2,,C1051
+N-channel MOSFET 2N7002 (SOT-23),"Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12",,C8545
