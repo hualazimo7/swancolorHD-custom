@@ -7,6 +7,9 @@ Additionally, it needs the video core from sameer, to be [found here](https://gi
 ## About
 This project is an open-source consolizer for the WonderSwan Color handheld, based on a Tang Nano 9k FPGA board (which has a GW1NR-LV9QN88P FPGA on it).
 
+Custom version [here](./PCB_CSUTOM/)  
+Lite version [here](./Lite/)  
+
 ## PCB
 <img src="./assets/pcb.png" alt="drawing" width="600"/>
 
